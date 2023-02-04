@@ -2,12 +2,17 @@ package com.dongguo.exceldemo.easyexcel.service.impl;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
+import com.alibaba.excel.enums.CellExtraTypeEnum;
 import com.alibaba.excel.read.listener.PageReadListener;
 import com.alibaba.excel.read.metadata.ReadSheet;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dongguo.exceldemo.easyexcel.common.BooleanTypeEnum;
+import com.dongguo.exceldemo.easyexcel.common.DemoExtraListener;
+import com.dongguo.exceldemo.easyexcel.common.NoModelDataListener;
 import com.dongguo.exceldemo.easyexcel.common.UploadDataV3Listener;
 import com.dongguo.exceldemo.easyexcel.convert.ProductSpuConvert;
+import com.dongguo.exceldemo.easyexcel.entity.DemoExtraData;
 import com.dongguo.exceldemo.easyexcel.entity.ProductExportVO;
 import com.dongguo.exceldemo.easyexcel.entity.ProductSpu;
 import com.dongguo.exceldemo.easyexcel.entity.ProductUploadVO;
@@ -26,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.dongguo.exceldemo.easyexcel.common.Const.FILE_NAME;
 
@@ -59,6 +65,54 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
         //导出
         String fileName = FILE_NAME;
         EasyExcelUtils.exportSafe(response, exportVOList, fileName, ProductExportVO.class);
+    }
+
+    @Override
+    public void extraRead(MultipartFile file) {
+        InputStream inputStream = null;
+        try {
+            inputStream = file.getInputStream();
+            // 这里 需要指定读用哪个class去读，然后读取第一个sheet
+            EasyExcel.read(inputStream, DemoExtraData.class, new DemoExtraListener())
+                    // 需要读取批注 默认不读取
+                    .extraRead(CellExtraTypeEnum.COMMENT)
+                    // 需要读取超链接 默认不读取
+                    .extraRead(CellExtraTypeEnum.HYPERLINK)
+                    // 需要读取合并单元格信息 默认不读取
+                    .extraRead(CellExtraTypeEnum.MERGE).sheet().doRead();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void noModelRead(MultipartFile file) {
+        InputStream inputStream = null;
+        try {
+            inputStream = file.getInputStream();
+            //读取第一个sheet 同步读取会自动finish
+            EasyExcel.read(inputStream, new NoModelDataListener(productUploadService)).sheet().doRead();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 
     /**
@@ -141,6 +195,15 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
             // 读取全部sheet
             // 这里需要注意 DemoDataListener的doAfterAllAnalysed 会在每个sheet读取完毕后调用一次。然后所有sheet都会往同一个DemoDataListener里面写
             EasyExcel.read(inputStream, ProductUploadVO.class, new UploadDataV3Listener(productUploadService)).doReadAll();
+            // 写法1
+//            try (ExcelReader excelReader = EasyExcel.read(inputStream).build()) {
+//                // 这里为了简单 所以注册了 同样的head 和Listener 自己使用功能必须不同的Listener
+//                ReadSheet readSheet1 = EasyExcel.readSheet(0).head(ProductUploadVO.class).registerReadListener(new UploadDataV3Listener(productUploadService)).build();
+//                ReadSheet readSheet2 = EasyExcel.readSheet(1).head(ProductUploadVO.class).registerReadListener(new UploadDataV3Listener(productUploadService)).build();
+//                // 这里注意 一定要把sheet1 sheet2 一起传进去，不然有个问题就是03版的excel 会读取多次，浪费性能
+//                excelReader.read(readSheet1, readSheet2);
+//            }
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -159,9 +222,9 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
         InputStream inputStream = null;
         try {
             inputStream = file.getInputStream();
-            EasyExcel.read(inputStream, ProductUploadVO.class, new UploadDataV3Listener(productUploadService)).sheet()
+            EasyExcel.read(inputStream, ProductUploadVO.class, new UploadDataV3Listener(productUploadService)).ignoreEmptyRow(true).sheet()
                     // 这里可以设置1，因为头就是一行。如果多行头，可以设置其他值。不传入也可以，因为默认会根据DemoData 来解析，他没有指定头，也就是默认1行
-                    .headRowNumber(1).doRead();
+                    .headRowNumber(2).doRead();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -173,6 +236,53 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
                 }
             }
         }
+    }
 
+    @Override
+    public void synchronousRead(MultipartFile file) {
+
+        InputStream inputStream = null;
+        try {
+            inputStream = file.getInputStream();
+            // 这里 需要指定读用哪个class去读，然后读取第一个sheet 同步读取会自动finish
+            List<ProductUploadVO> list = EasyExcel.read(inputStream).head(ProductUploadVO.class).sheet().doReadSync();
+            productUploadService.save(list);
+
+            // 这里 也可以不指定class，返回一个list，然后读取第一个sheet 同步读取会自动finish
+//            List<Map<Integer, String>> listMap = EasyExcel.read(inputStream).sheet().doReadSync();
+//            for (Map<Integer, String> data : listMap) {
+//                // 返回每条数据的键值对 表示所在的列 和所在列的值
+//                log.info("读取到数据:{}", JSON.toJSONString(data));
+//            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void headerRead(MultipartFile file) {
+        InputStream inputStream = null;
+        try {
+            inputStream = file.getInputStream();
+            EasyExcel.read(inputStream, ProductUploadVO.class, new UploadDataV3Listener(productUploadService)).sheet().doRead();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

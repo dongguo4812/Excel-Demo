@@ -25,7 +25,8 @@ public class EasyExcelV3Controller {
     private EasyExcelV3Service easyExcelV3Service;
 
     /**
-     * 上传  最简单的导入
+     * 最简单的导入
+     *       所有导入工作表有一个行头，这是默认的，可以再导入时.headRowNumber(1)设置跳过的表头行数
      * @param file
      * @return
      * @throws IOException
@@ -45,7 +46,7 @@ public class EasyExcelV3Controller {
      */
     @PostMapping("/uploadReadAllSheet")
     @ResponseBody
-    public String upuploadReadAllSheetload(MultipartFile file)throws IOException {
+    public String uploadReadAllSheet(MultipartFile file)throws IOException {
         easyExcelV3Service.uploadReadAllSheet(file);
         return"success";
     }
@@ -63,7 +64,56 @@ public class EasyExcelV3Controller {
         return"success";
     }
 
+    /**
+     * 同步的返回  获取所有的数据再进行导入
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    @PostMapping("/synchronousRead")
+    @ResponseBody
+    public String synchronousRead(MultipartFile file)throws IOException {
+        easyExcelV3Service.synchronousRead(file);
+        return"success";
+    }
+    /**
+     * 读取表头数据
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    @PostMapping("/headerRead")
+    @ResponseBody
+    public String headerRead(MultipartFile file)throws IOException {
+        easyExcelV3Service.headerRead(file);
+        return"success";
+    }
 
+    /**
+     * 额外信息（批注、超链接、合并单元格信息读取）
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    @PostMapping("/extraRead")
+    @ResponseBody
+    public String extraRead(MultipartFile file)throws IOException {
+        easyExcelV3Service.extraRead(file);
+        return"success";
+    }
+
+    /**
+     * 不创建对象的读
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    @PostMapping("/noModelRead")
+    @ResponseBody
+    public String noModelRead(MultipartFile file)throws IOException {
+        easyExcelV3Service.noModelRead(file);
+        return"success";
+    }
 
     /**
      * 导出

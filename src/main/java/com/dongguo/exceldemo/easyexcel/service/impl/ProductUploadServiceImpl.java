@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author dongguo
@@ -37,5 +38,12 @@ public class ProductUploadServiceImpl  extends ServiceImpl<ProductUploadMapper, 
             spuList.add(spu);
         });
         easyExcelService.saveBatch(spuList);
+    }
+
+    @Override
+    public void saveMap(List<Map<Integer, String>> cachedDataList) {
+        cachedDataList.stream().forEach(map->{
+           //存数据库
+        });
     }
 }

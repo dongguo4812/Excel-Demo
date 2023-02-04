@@ -31,11 +31,18 @@ public interface EasyExcelV3Service extends IService<ProductSpu> {
      */
     void uploadComplexHeaderRead(MultipartFile file);
 
+    void synchronousRead(MultipartFile file);
 
+    void headerRead(MultipartFile file);
     /**
      * 导出
      */
     void export(HttpServletResponse response);
 
     void exportSafe(HttpServletResponse response);
+
+
+    void extraRead(MultipartFile file);
+
+    void noModelRead(MultipartFile file);
 }
