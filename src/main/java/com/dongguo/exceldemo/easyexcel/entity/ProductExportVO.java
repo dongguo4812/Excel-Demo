@@ -1,6 +1,7 @@
 package com.dongguo.exceldemo.easyexcel.entity;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.format.NumberFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -27,13 +28,13 @@ public class ProductExportVO {
     private String taxCode;
 
     @ExcelProperty(index = 8, value = "商品税率")
-    private String taxRate;
+    private Double taxRate;
 
     @ExcelProperty(index = 6, value = "大类税率")
-    private String bigCategoryTaxRate;
+    private Double bigCategoryTaxRate;
 
     @ExcelProperty(index = 7, value = "小类税率")
-    private String smallCategoryTaxRate;
+    private Double smallCategoryTaxRate;
 
     @ExcelProperty(index = 9, value = "产品检测")
     private String needCheck;

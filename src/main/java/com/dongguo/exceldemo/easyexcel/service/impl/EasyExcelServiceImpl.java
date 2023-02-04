@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.dongguo.exceldemo.easyexcel.common.Const.FILE_NAME;
+
 /**
  * @author dongguo
  * @date 2023/2/3
@@ -36,7 +38,7 @@ public class EasyExcelServiceImpl extends ServiceImpl<EasyExcelMapper, ProductSp
         //查数据
         List<ProductExportVO> exportVOList = getExportVOList();
         //导出
-        String fileName = "商品清单";
+        String fileName = FILE_NAME;
         EasyExcelUtils.export(response, exportVOList, fileName, ProductExportVO.class);
     }
 
@@ -45,7 +47,7 @@ public class EasyExcelServiceImpl extends ServiceImpl<EasyExcelMapper, ProductSp
         //查数据
         List<ProductExportVO> exportVOList = getExportVOList();
         //导出
-        String fileName = "商品清单";
+        String fileName = FILE_NAME;
         EasyExcelUtils.exportSafe(response, exportVOList, fileName, ProductExportVO.class);
     }
 

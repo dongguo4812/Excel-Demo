@@ -2,6 +2,7 @@ package com.dongguo.exceldemo.easyexcel.entity;
 
 import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.format.NumberFormat;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 

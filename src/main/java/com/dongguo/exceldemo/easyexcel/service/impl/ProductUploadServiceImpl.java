@@ -28,14 +28,14 @@ public class ProductUploadServiceImpl  extends ServiceImpl<ProductUploadMapper, 
     public void save(List<ProductUploadVO> list) {
         // 如果是mybatis,尽量别直接调用多次insert,自己写一个mapper里面新增一个方法batchInsert,所有数据一次性插入
         List<ProductSpu> spuList = new ArrayList<>(list.size());
-        for (ProductUploadVO uploadVO: list) {
+        list.stream().forEach(uploadVO ->{
             ProductSpu spu = ProductSpuConvert.INSTANCE.voToPo(uploadVO);
             spu.setNeedCheck(BooleanTypeEnum.parseType(uploadVO.getNeedCheckStr()));
             spu.setNeedLedger(BooleanTypeEnum.parseType(uploadVO.getNeedLedgerStr()));
             spu.setIsStandard(BooleanTypeEnum.parseType(uploadVO.getIsStandardStr()));
             spu.setCategory(uploadVO.getBigCategory() +"/"+ uploadVO.getSmallCategory());
             spuList.add(spu);
-        }
+        });
         easyExcelService.saveBatch(spuList);
     }
 }
