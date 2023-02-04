@@ -2,8 +2,16 @@
 spring:
   application:
     name: Excel-Demo
+  datasource: #mysql数据库连接
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/excel?serverTimezone=GMT%2B8&characterEncoding=utf-8
+    username: root
+    password: root
 # 应用服务 WEB 访问端口
 server:
   port: 8081
 
-
+mybatis-plus:
+  configuration: #sql日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath*:com/dongguo/**/*.xml
