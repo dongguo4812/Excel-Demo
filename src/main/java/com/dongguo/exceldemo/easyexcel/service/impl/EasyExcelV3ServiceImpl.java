@@ -7,10 +7,7 @@ import com.alibaba.excel.read.listener.PageReadListener;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dongguo.exceldemo.easyexcel.common.BooleanTypeEnum;
-import com.dongguo.exceldemo.easyexcel.common.DemoExtraListener;
-import com.dongguo.exceldemo.easyexcel.common.NoModelDataListener;
-import com.dongguo.exceldemo.easyexcel.common.UploadDataV3Listener;
+import com.dongguo.exceldemo.easyexcel.common.*;
 import com.dongguo.exceldemo.easyexcel.convert.ProductSpuConvert;
 import com.dongguo.exceldemo.easyexcel.entity.DemoExtraData;
 import com.dongguo.exceldemo.easyexcel.entity.ProductExportVO;
@@ -170,10 +167,14 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
              *这里 需要指定读用哪个class去读，然后读取第一个sheet 文件流会自动关闭
              *这里每次会读取100条数据 然后返回过来 直接调用使用数据就行
              */
-            EasyExcel.read(inputStream, ProductUploadVO.class,
-                    new PageReadListener<ProductUploadVO>(dataList -> {
-                        productUploadService.save(dataList);
-                    })).sheet().doRead();
+//            EasyExcel.read(inputStream, ProductUploadVO.class,
+//                    new PageReadListener<ProductUploadVO>(dataList -> {
+//                        productUploadService.save(dataList);
+//                    })).sheet().doRead();
+            /**
+             * web中的读
+             */
+            EasyExcel.read(inputStream, ProductUploadVO.class, new UploadDataV3Listener(productUploadService)).sheet().doRead();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
