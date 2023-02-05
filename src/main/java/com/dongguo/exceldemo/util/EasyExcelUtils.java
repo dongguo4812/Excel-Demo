@@ -10,6 +10,8 @@ import com.alibaba.excel.util.FileUtils;
 import com.alibaba.excel.util.ListUtils;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson2.JSON;
+import com.dongguo.exceldemo.easyexcel.entity.DemoData;
+import com.dongguo.exceldemo.easyexcel.entity.DemoStyleData;
 import com.dongguo.exceldemo.easyexcel.entity.ImageDemoData;
 import com.dongguo.exceldemo.easyexcel.entity.ProductExportVO;
 
@@ -117,7 +119,7 @@ public class EasyExcelUtils {
      * @return
      * @throws IOException
      */
-    private static OutputStream getOutputStream(HttpServletResponse response, String fileName) throws IOException {
+    public static OutputStream getOutputStream(HttpServletResponse response, String fileName) throws IOException {
 
         OutputStream outputStream = response.getOutputStream();
         // 导出EXCEL
@@ -292,7 +294,7 @@ public class EasyExcelUtils {
 //                imageData.setRelativeLastColumnIndex(1);
 
             // 写入数据
-            EasyExcel.write(outputStream, ImageDemoData.class).sheet().doWrite(list);
+            EasyExcel.write(outputStream, clazz).sheet(fileName).doWrite(list);
             outputStream.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -306,4 +308,59 @@ public class EasyExcelUtils {
             }
         }
     }
+
+    public static void templateWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+            String templateFileName = TestFileUtil.getPath() + "demo" + File.separator + "demo.xlsx";
+
+            // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+            EasyExcel.write(outputStream, clazz).withTemplate(templateFileName).sheet().doWrite(list);
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void annotationStyleWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+
+            // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+            EasyExcel.write(outputStream, clazz).sheet(fileName).doWrite(list);
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    public static List<DemoData> data() {
+        List<DemoData> list = ListUtils.newArrayList();
+        for (int i = 0; i < 10; i++) {
+            DemoData data = new DemoData();
+            data.setString("字符串" + i);
+            data.setDate(new Date());
+            data.setDoubleData(0.56);
+            list.add(data);
+        }
+        return list;
+    }
+
 }

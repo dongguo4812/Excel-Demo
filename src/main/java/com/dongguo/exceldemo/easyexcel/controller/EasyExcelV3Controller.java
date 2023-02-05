@@ -167,4 +167,32 @@ public class EasyExcelV3Controller {
     public void imageWrite(HttpServletResponse response) {
         easyExcelV3Service.imageWrite(response);
     }
+
+
+    /**
+     * 导出 超链接、备注、公式、指定单个单元格的样式、单个单元格多种样式
+     * @param response
+     */
+    @PostMapping("/writeCellDataWrite")
+    public void writeCellDataWrite(HttpServletResponse response) {
+        easyExcelV3Service.writeCellDataWrite(response);
+    }
+
+    /**
+     * 导出 根据模板写入
+     * @param response
+     */
+    @PostMapping("/templateWrite")
+    public void templateWrite(HttpServletResponse response) {
+        easyExcelV3Service.templateWrite(response);
+    }
+
+    /**
+     * 导出    注解形式自定义样式
+     * @param response
+     */
+    @PostMapping("/annotationStyleWrite")
+    public void annotationStyleWrite(HttpServletResponse response) {
+        easyExcelV3Service.annotationStyleWrite(response);
+    }
 }

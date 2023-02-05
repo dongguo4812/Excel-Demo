@@ -48,4 +48,10 @@ public interface EasyExcelV3Service extends IService<ProductSpu> {
     void repeatedWrite(HttpServletResponse response);
 
     void imageWrite(HttpServletResponse response);
+
+    void writeCellDataWrite(HttpServletResponse response);
+
+    void templateWrite(HttpServletResponse response);
+
+    void annotationStyleWrite(HttpServletResponse response);
 }

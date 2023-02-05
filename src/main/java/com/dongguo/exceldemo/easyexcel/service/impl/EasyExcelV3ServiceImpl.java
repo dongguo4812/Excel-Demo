@@ -1,7 +1,11 @@
 package com.dongguo.exceldemo.easyexcel.service.impl;
 
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.enums.CellDataTypeEnum;
 import com.alibaba.excel.enums.CellExtraTypeEnum;
+import com.alibaba.excel.metadata.data.*;
+import com.alibaba.excel.write.metadata.style.WriteCellStyle;
+import com.alibaba.excel.write.metadata.style.WriteFont;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dongguo.exceldemo.easyexcel.common.*;
 import com.dongguo.exceldemo.easyexcel.convert.ProductSpuConvert;
@@ -11,18 +15,23 @@ import com.dongguo.exceldemo.easyexcel.service.EasyExcelService;
 import com.dongguo.exceldemo.easyexcel.service.EasyExcelV3Service;
 import com.dongguo.exceldemo.easyexcel.service.ProductUploadService;
 import com.dongguo.exceldemo.util.EasyExcelUtils;
+import com.dongguo.exceldemo.util.TestFileUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.dongguo.exceldemo.easyexcel.common.Const.FILE_NAME;
 
@@ -70,7 +79,7 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
     @Override
     public void imageWrite(HttpServletResponse response) {
         //查数据
-      List<ImageDemoData> list = new ArrayList<>();
+        List<ImageDemoData> list = new ArrayList<>();
         try {
             /**
              * URL只要是个图片即可，不要求后缀等
@@ -83,13 +92,110 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
             ImageDemoData imageDemoData2 = new ImageDemoData();
             imageDemoData2.setUrl(url2);
             list.add(imageDemoData2);
-
+            //导出
+            String fileName = "导出图片";
+            EasyExcelUtils.imageWrite(response, list, fileName, ImageDemoData.class);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+
+    }
+
+    @Override
+    public void writeCellDataWrite(HttpServletResponse response) {
+        OutputStream outputStream = null;
+        try {
+            String fileName = "导出图片";
+            outputStream = EasyExcelUtils.getOutputStream(response, fileName);
+            WriteCellDemoData writeCellDemoData = new WriteCellDemoData();
+
+            // 设置超链接
+            WriteCellData<String> hyperlink = new WriteCellData<>("官方网站");
+            writeCellDemoData.setHyperlink(hyperlink);
+            HyperlinkData hyperlinkData = new HyperlinkData();
+            hyperlink.setHyperlinkData(hyperlinkData);
+            hyperlinkData.setAddress("https://github.com/alibaba/easyexcel");
+            hyperlinkData.setHyperlinkType(HyperlinkData.HyperlinkType.URL);
+
+            // 设置备注
+            WriteCellData<String> comment = new WriteCellData<>("备注的单元格信息");
+            writeCellDemoData.setCommentData(comment);
+            CommentData commentData = new CommentData();
+            comment.setCommentData(commentData);
+            commentData.setAuthor("Jiaju Zhuang");
+            commentData.setRichTextStringData(new RichTextStringData("这是一个备注"));
+            // 备注的默认大小是按照单元格的大小 这里想调整到4个单元格那么大 所以向后 向下 各额外占用了一个单元格
+            commentData.setRelativeLastColumnIndex(1);
+            commentData.setRelativeLastRowIndex(1);
+
+            // 设置公式
+            WriteCellData<String> formula = new WriteCellData<>();
+            writeCellDemoData.setFormulaData(formula);
+            FormulaData formulaData = new FormulaData();
+            formula.setFormulaData(formulaData);
+            // 将 123456789 中的第一个数字替换成 2
+            // 这里只是例子 如果真的涉及到公式 能内存算好尽量内存算好 公式能不用尽量不用
+            formulaData.setFormulaValue("REPLACE(123456789,1,1,2)");
+
+            // 设置单个单元格的样式 当然样式 很多的话 也可以用注解等方式。
+            WriteCellData<String> writeCellStyle = new WriteCellData<>("单元格样式");
+            writeCellStyle.setType(CellDataTypeEnum.STRING);
+            writeCellDemoData.setWriteCellStyle(writeCellStyle);
+            WriteCellStyle writeCellStyleData = new WriteCellStyle();
+            writeCellStyle.setWriteCellStyle(writeCellStyleData);
+            // 这里需要指定 FillPatternType 为FillPatternType.SOLID_FOREGROUND 不然无法显示背景颜色.
+            writeCellStyleData.setFillPatternType(FillPatternType.SOLID_FOREGROUND);
+            // 背景绿色
+            writeCellStyleData.setFillForegroundColor(IndexedColors.GREEN.getIndex());
+
+            // 设置单个单元格多种样式
+            WriteCellData<String> richTest = new WriteCellData<>();
+            richTest.setType(CellDataTypeEnum.RICH_TEXT_STRING);
+            writeCellDemoData.setRichText(richTest);
+            RichTextStringData richTextStringData = new RichTextStringData();
+            richTest.setRichTextStringDataValue(richTextStringData);
+            richTextStringData.setTextString("红色绿色默认");
+            // 前2个字红色
+            WriteFont writeFont = new WriteFont();
+            writeFont.setColor(IndexedColors.RED.getIndex());
+            richTextStringData.applyFont(0, 2, writeFont);
+            // 接下来2个字绿色
+            writeFont = new WriteFont();
+            writeFont.setColor(IndexedColors.GREEN.getIndex());
+            richTextStringData.applyFont(2, 4, writeFont);
+
+            List<WriteCellDemoData> data = new ArrayList<>();
+            data.add(writeCellDemoData);
+            EasyExcel.write(outputStream, WriteCellDemoData.class).inMemory(true).sheet("模板").doWrite(data);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void templateWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> list = getExportVOList();
         //导出
-        String fileName = "导出图片";
-        EasyExcelUtils.imageWrite(response, list, fileName, ImageDemoData.class);
+        EasyExcelUtils.templateWrite(response, list, FILE_NAME, ProductExportVO.class);
+
+    }
+
+    @Override
+    public void annotationStyleWrite(HttpServletResponse response) {
+        //查数据
+        List<DemoData> list = EasyExcelUtils.data();
+        //导出
+        EasyExcelUtils.annotationStyleWrite(response, list, FILE_NAME, DemoStyleData.class);
     }
 
     @Override
