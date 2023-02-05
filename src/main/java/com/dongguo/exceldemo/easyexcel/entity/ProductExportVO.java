@@ -3,6 +3,7 @@ package com.dongguo.exceldemo.easyexcel.entity;
 import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.annotation.write.style.ColumnWidth;
+import com.alibaba.excel.annotation.write.style.ContentLoopMerge;
 import com.alibaba.excel.annotation.write.style.ContentRowHeight;
 import com.alibaba.excel.annotation.write.style.HeadRowHeight;
 import lombok.Data;
@@ -15,6 +16,7 @@ import lombok.experimental.Accessors;
 @HeadRowHeight(20)
 @ColumnWidth(25)
 public class ProductExportVO {
+
     @ExcelProperty(index = 2, value = "产品名称")
     private String name;
 

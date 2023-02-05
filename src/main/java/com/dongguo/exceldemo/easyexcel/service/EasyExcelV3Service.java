@@ -54,4 +54,20 @@ public interface EasyExcelV3Service extends IService<ProductSpu> {
     void templateWrite(HttpServletResponse response);
 
     void annotationStyleWrite(HttpServletResponse response);
+
+    void handlerStyleWrite(HttpServletResponse response);
+
+    void mergeWrite(HttpServletResponse response);
+
+    void tableWrite(HttpServletResponse response);
+
+    void dynamicHeadWrite(HttpServletResponse response);
+
+    void longestMatchColumnWidthWrite(HttpServletResponse response);
+
+    void customHandlerWrite(HttpServletResponse response);
+
+    void commentWrite(HttpServletResponse response);
+
+    void variableTitleWrite(HttpServletResponse response);
 }

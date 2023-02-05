@@ -195,4 +195,81 @@ public class EasyExcelV3Controller {
     public void annotationStyleWrite(HttpServletResponse response) {
         easyExcelV3Service.annotationStyleWrite(response);
     }
+
+
+    /**
+     * 导出      自定义样式
+     * @param response
+     */
+    @PostMapping("/handlerStyleWrite")
+    public void handlerStyleWrite(HttpServletResponse response) {
+        easyExcelV3Service.handlerStyleWrite(response);
+    }
+
+    /**
+     * 导出 合并单元格  覆盖行或列
+     * 属性注解 将该列 每两行并成一个单元格  @ContentLoopMerge(eachRow = 2)   两列合并@ContentLoopMerge(columnExtend = 2)
+     *
+     * 类注解  将第6-7行的2-3列合并成一个单元格   @OnceAbsoluteMerge(firstRowIndex = 5, lastRowIndex = 6, firstColumnIndex = 1, lastColumnIndex = 2)
+     * @param response
+     */
+    @PostMapping("/mergeWrite")
+    public void mergeWrite(HttpServletResponse response) {
+        easyExcelV3Service.mergeWrite(response);
+    }
+
+    /**
+     * 导出 使用table去写入   一个sheet有多个表头
+     * @param response
+     */
+    @PostMapping("/tableWrite")
+    public void tableWrite(HttpServletResponse response) {
+        easyExcelV3Service.tableWrite(response);
+    }
+
+
+    /**
+     * 导出  动态头，实时生成头写入
+     * @param response
+     */
+    @PostMapping("/dynamicHeadWrite")
+    public void dynamicHeadWrite(HttpServletResponse response) {
+        easyExcelV3Service.dynamicHeadWrite(response);
+    }
+    /**
+     * 导出自动列宽(不太精确)   不好用
+     * @param response
+     */
+    @PostMapping("/longestMatchColumnWidthWrite")
+    public void longestMatchColumnWidthWrite(HttpServletResponse response) {
+        easyExcelV3Service.longestMatchColumnWidthWrite(response);
+    }
+
+
+    /**
+     * 导出    自定义拦截器（上面几点都不符合但是要对单元格进行操作的参照这个）
+     * @param response
+     */
+    @PostMapping("/customHandlerWrite")
+    public void customHandlerWrite(HttpServletResponse response) {
+        easyExcelV3Service.customHandlerWrite(response);
+    }
+
+    /**
+     * 导出     插入批注
+     * @param response
+     */
+    @PostMapping("/commentWrite")
+    public void commentWrite(HttpServletResponse response) {
+        easyExcelV3Service.commentWrite(response);
+    }
+
+    /**
+     * 导出      可变标题处理(包括标题国际化等)
+     * @param response
+     */
+    @PostMapping("/variableTitleWrite")
+    public void variableTitleWrite(HttpServletResponse response) {
+        easyExcelV3Service.variableTitleWrite(response);
+    }
 }

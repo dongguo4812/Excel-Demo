@@ -6,14 +6,24 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.enums.CellDataTypeEnum;
 import com.alibaba.excel.metadata.data.WriteCellData;
 import com.alibaba.excel.support.ExcelTypeEnum;
+import com.alibaba.excel.util.BooleanUtils;
 import com.alibaba.excel.util.FileUtils;
 import com.alibaba.excel.util.ListUtils;
+import com.alibaba.excel.write.handler.CellWriteHandler;
+import com.alibaba.excel.write.handler.context.CellWriteHandlerContext;
+import com.alibaba.excel.write.merge.LoopMergeStrategy;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.excel.write.metadata.WriteTable;
+import com.alibaba.excel.write.metadata.style.WriteCellStyle;
+import com.alibaba.excel.write.metadata.style.WriteFont;
+import com.alibaba.excel.write.style.HorizontalCellStyleStrategy;
+import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
 import com.alibaba.fastjson2.JSON;
-import com.dongguo.exceldemo.easyexcel.entity.DemoData;
-import com.dongguo.exceldemo.easyexcel.entity.DemoStyleData;
-import com.dongguo.exceldemo.easyexcel.entity.ImageDemoData;
-import com.dongguo.exceldemo.easyexcel.entity.ProductExportVO;
+import com.dongguo.exceldemo.easyexcel.common.CommentWriteHandler;
+import com.dongguo.exceldemo.easyexcel.common.CustomCellWriteHandler;
+import com.dongguo.exceldemo.easyexcel.common.CustomSheetWriteHandler;
+import com.dongguo.exceldemo.easyexcel.entity.*;
+import org.apache.poi.ss.usermodel.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -351,6 +361,7 @@ public class EasyExcelUtils {
             }
         }
     }
+
     public static List<DemoData> data() {
         List<DemoData> list = ListUtils.newArrayList();
         for (int i = 0; i < 10; i++) {
@@ -362,5 +373,323 @@ public class EasyExcelUtils {
         }
         return list;
     }
+    public static List<ConverterData> convertData() {
+        List<ConverterData> list = ListUtils.newArrayList();
+        for (int i = 0; i < 10; i++) {
+            ConverterData data = new ConverterData();
+            data.setString("字符串" + i);
+            data.setDate(new Date());
+            data.setDoubleData(0.56);
+            list.add(data);
+        }
+        return list;
+    }
 
+    public static void handlerStyleWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+            // 方法1 使用已有的策略 推荐
+            // HorizontalCellStyleStrategy 每一行的样式都一样 或者隔行一样
+            // AbstractVerticalCellStyleStrategy 每一列的样式都一样 需要自己回调每一页
+            // 头的策略
+            WriteCellStyle headWriteCellStyle = new WriteCellStyle();
+            // 背景设置为红色
+            headWriteCellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+            WriteFont headWriteFont = new WriteFont();
+            headWriteFont.setFontHeightInPoints((short) 20);
+            headWriteCellStyle.setWriteFont(headWriteFont);
+            // 内容的策略
+            WriteCellStyle contentWriteCellStyle = new WriteCellStyle();
+            // 这里需要指定 FillPatternType 为FillPatternType.SOLID_FOREGROUND 不然无法显示背景颜色.头默认了 FillPatternType所以可以不指定
+            contentWriteCellStyle.setFillPatternType(FillPatternType.SOLID_FOREGROUND);
+            // 背景绿色
+            contentWriteCellStyle.setFillForegroundColor(IndexedColors.GREEN.getIndex());
+            WriteFont contentWriteFont = new WriteFont();
+            // 字体大小
+            contentWriteFont.setFontHeightInPoints((short) 10);
+            contentWriteCellStyle.setWriteFont(contentWriteFont);
+            // 这个策略是 头是头的样式 内容是内容的样式 其他的策略可以自己实现
+            HorizontalCellStyleStrategy horizontalCellStyleStrategy =
+                    new HorizontalCellStyleStrategy(headWriteCellStyle, contentWriteCellStyle);
+
+            // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+            EasyExcel.write(outputStream, clazz)
+                    .registerWriteHandler(horizontalCellStyleStrategy)
+                    .sheet(fileName)
+                    .doWrite(list);
+
+
+            // 方法2: 使用easyexcel的方式完全自己写 不太推荐 尽量使用已有策略
+            // @since 3.0.0-beta2
+//            EasyExcel.write(outputStream, clazz)
+//                    .registerWriteHandler(new CellWriteHandler() {
+//                        @Override
+//                        public void afterCellDispose(CellWriteHandlerContext context) {
+//                            // 当前事件会在 数据设置到poi的cell里面才会回调
+//                            // 判断不是头的情况 如果是fill 的情况 这里会==null 所以用not true
+//                            if (BooleanUtils.isNotTrue(context.getHead())) {
+//                                // 第一个单元格
+//                                // 只要不是头 一定会有数据 当然fill的情况 可能要context.getCellDataList() ,这个需要看模板，因为一个单元格会有多个 WriteCellData
+//                                WriteCellData<?> cellData = context.getFirstCellData();
+//                                // 这里需要去cellData 获取样式
+//                                // 很重要的一个原因是 WriteCellStyle 和 dataFormatData绑定的 简单的说 比如你加了 DateTimeFormat
+//                                // ，已经将writeCellStyle里面的dataFormatData 改了 如果你自己new了一个WriteCellStyle，可能注解的样式就失效了
+//                                // 然后 getOrCreateStyle 用于返回一个样式，如果为空，则创建一个后返回
+//                                WriteCellStyle writeCellStyle = cellData.getOrCreateStyle();
+//                                writeCellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+//                                // 这里需要指定 FillPatternType 为FillPatternType.SOLID_FOREGROUND
+//                                writeCellStyle.setFillPatternType(FillPatternType.SOLID_FOREGROUND);
+//                                // 这样样式就设置好了 后面有个FillStyleCellWriteHandler 默认会将 WriteCellStyle 设置到 cell里面去 所以可以不用管了
+//                            }
+//                        }
+//                    }).sheet(fileName)
+//                    .doWrite(list);
+
+
+            // 方法3: 使用poi的样式完全自己写 不推荐
+            // @since 3.0.0-beta2
+            // 坑1：style里面有dataformat 用来格式化数据的 所以自己设置可能导致格式化注解不生效
+            // 坑2：不要一直去创建style 记得缓存起来 最多创建6W个就挂了
+//            EasyExcel.write(outputStream, clazz)
+//                    .registerWriteHandler(new CellWriteHandler() {
+//                        @Override
+//                        public void afterCellDispose(CellWriteHandlerContext context) {
+//                            // 当前事件会在 数据设置到poi的cell里面才会回调
+//                            // 判断不是头的情况 如果是fill 的情况 这里会==null 所以用not true
+//                            if (BooleanUtils.isNotTrue(context.getHead())) {
+//                                Cell cell = context.getCell();
+//                                // 拿到poi的workbook
+//                                Workbook workbook = context.getWriteWorkbookHolder().getWorkbook();
+//                                // 这里千万记住 想办法能复用的地方把他缓存起来 一个表格最多创建6W个样式
+//                                // 不同单元格尽量传同一个 cellStyle
+//                                CellStyle cellStyle = workbook.createCellStyle();
+//                                cellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+//                                // 这里需要指定 FillPatternType 为FillPatternType.SOLID_FOREGROUND
+//                                cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//                                cell.setCellStyle(cellStyle);
+//
+//                                // 由于这里没有指定dataformat 最后展示的数据 格式可能会不太正确
+//
+//                                // 这里要把 WriteCellData的样式清空， 不然后面还有一个拦截器 FillStyleCellWriteHandler 默认会将 WriteCellStyle 设置到
+//                                // cell里面去 会导致自己设置的不一样
+//                                context.getFirstCellData().setWriteCellStyle(null);
+//                            }
+//                        }
+//                    }).sheet(fileName)
+//                    .doWrite(list);
+
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void mergeWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+
+            // 方法1 注解
+            // 在DemoStyleData里面加上ContentLoopMerge注解
+            // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+//            EasyExcel.write(outputStream, clazz).sheet(fileName).doWrite(list);
+
+            // 方法2 自定义合并单元格策略
+            // 每隔2行会合并 把eachRow 设置成 2 也就是我们数据的长度，所以就第一列会合并。当然其他合并策略也可以自己写
+            LoopMergeStrategy loopMergeStrategy = new LoopMergeStrategy(2, 0);
+            // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+            //多个策略可以一直.registerWriteHandler
+            EasyExcel.write(outputStream, clazz).registerWriteHandler(loopMergeStrategy).sheet(fileName).doWrite(list);
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    public static void tableWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+
+            // 方法1 这里直接写多个table的案例了，如果只有一个 也可以直一行代码搞定，参照其他案
+            // 这里 需要指定写用哪个class去写
+            try (ExcelWriter excelWriter = EasyExcel.write(outputStream, clazz).build()) {
+                // 把sheet设置为不需要头 不然会输出sheet的头 这样看起来第一个table 就有2个头了
+                WriteSheet writeSheet = EasyExcel.writerSheet(fileName).needHead(Boolean.FALSE).build();
+                // 这里必须指定需要头，table 会继承sheet的配置，sheet配置了不需要，table 默认也是不需要
+                WriteTable writeTable0 = EasyExcel.writerTable(0).needHead(Boolean.TRUE).build();
+                WriteTable writeTable1 = EasyExcel.writerTable(1).needHead(Boolean.TRUE).build();
+                // 第一次写入会创建头
+                excelWriter.write(list, writeSheet, writeTable0);
+                // 第二次写如也会创建头，然后在第一次的后面写入数据
+                excelWriter.write(list, writeSheet, writeTable1);
+            }
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void dynamicHeadWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+            EasyExcel.write(outputStream, clazz)
+                    // 这里放入动态头
+                    .head(head()).sheet(fileName)
+                    // 当然这里数据也可以用 List<List<String>> 去传入
+                    .doWrite(list);
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static List<List<String>> head() {
+        List<List<String>> list = new ArrayList<List<String>>();
+        List<String> head0 = new ArrayList<String>();
+        head0.add("字符串" + System.currentTimeMillis());
+        List<String> head1 = new ArrayList<String>();
+        head1.add("数字" + System.currentTimeMillis());
+        List<String> head2 = new ArrayList<String>();
+        head2.add("日期" + System.currentTimeMillis());
+        list.add(head0);
+        list.add(head1);
+        list.add(head2);
+        return list;
+    }
+
+    public static void longestMatchColumnWidthWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+            // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+            EasyExcel.write(outputStream, clazz).registerWriteHandler(new LongestMatchColumnWidthStyleStrategy()).sheet(fileName).doWrite(list);
+
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void customHandlerWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+            // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+            EasyExcel.write(outputStream, clazz).registerWriteHandler(new CustomSheetWriteHandler())
+                    .registerWriteHandler(new CustomCellWriteHandler()).sheet(fileName).doWrite(data());
+
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void commentWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+            // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+            // 这里要注意inMemory 要设置为true，才能支持批注。目前没有好的办法解决 不在内存处理批注。这个需要自己选择。
+            EasyExcel.write(outputStream,clazz).inMemory(Boolean.TRUE).registerWriteHandler(new CommentWriteHandler())
+                    .sheet(fileName).doWrite(list);
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void variableTitleWrite(HttpServletResponse response, List<?> list, String fileName, Class clazz) {
+        OutputStream outputStream = null;
+        try {
+            outputStream = getOutputStream(response, fileName);
+            // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+            EasyExcel.write(outputStream,clazz).head(variableTitleHead()).sheet(fileName).doWrite(convertData());
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static List<List<String>> variableTitleHead() {
+        List<List<String>> list = ListUtils.newArrayList();
+        List<String> head0 = ListUtils.newArrayList();
+        head0.add("string" + System.currentTimeMillis());
+        List<String> head1 = ListUtils.newArrayList();
+        head1.add("number" + System.currentTimeMillis());
+        List<String> head2 = ListUtils.newArrayList();
+        head2.add("date" + System.currentTimeMillis());
+        list.add(head0);
+        list.add(head1);
+        list.add(head2);
+        return list;
+    }
 }

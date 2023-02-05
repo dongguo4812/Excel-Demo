@@ -4,6 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.enums.CellDataTypeEnum;
 import com.alibaba.excel.enums.CellExtraTypeEnum;
 import com.alibaba.excel.metadata.data.*;
+import com.alibaba.excel.util.ListUtils;
 import com.alibaba.excel.write.metadata.style.WriteCellStyle;
 import com.alibaba.excel.write.metadata.style.WriteFont;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -196,6 +197,22 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
         List<DemoData> list = EasyExcelUtils.data();
         //导出
         EasyExcelUtils.annotationStyleWrite(response, list, FILE_NAME, DemoStyleData.class);
+    }
+
+    @Override
+    public void handlerStyleWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> list = getExportVOList();
+        //导出
+        EasyExcelUtils.handlerStyleWrite(response, list, FILE_NAME, ProductExportVO.class);
+    }
+
+    @Override
+    public void mergeWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> list = getExportVOList();
+        //导出
+        EasyExcelUtils.mergeWrite(response, list, FILE_NAME, ProductExportVO.class);
     }
 
     @Override
@@ -429,4 +446,53 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
             }
         }
     }
+
+    @Override
+    public void tableWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> exportVOList = getExportVOList();
+        //导出
+        EasyExcelUtils.tableWrite(response, exportVOList, FILE_NAME, ProductExportVO.class);
+    }
+
+    @Override
+    public void dynamicHeadWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> exportVOList = getExportVOList();
+        //导出
+        EasyExcelUtils.dynamicHeadWrite(response, exportVOList, FILE_NAME, ProductExportVO.class);
+    }
+    @Override
+    public void longestMatchColumnWidthWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> exportVOList = getExportVOList();
+        //导出
+        EasyExcelUtils.longestMatchColumnWidthWrite(response, exportVOList, FILE_NAME, ProductExportVO.class);
+    }
+
+    @Override
+    public void customHandlerWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> exportVOList = getExportVOList();
+        //导出
+        EasyExcelUtils.customHandlerWrite(response, exportVOList, FILE_NAME, ProductExportVO.class);
+    }
+
+    @Override
+    public void commentWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> exportVOList = getExportVOList();
+        //导出
+        EasyExcelUtils.commentWrite(response, exportVOList, FILE_NAME, ProductExportVO.class);
+    }
+
+    @Override
+    public void variableTitleWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> exportVOList = getExportVOList();
+        //导出
+        EasyExcelUtils.variableTitleWrite(response, exportVOList, FILE_NAME, ConverterData.class);
+    }
+
+
 }
