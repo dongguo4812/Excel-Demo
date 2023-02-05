@@ -1,18 +1,18 @@
 package com.dongguo.exceldemo.easyexcel.entity;
 
+import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
-import com.alibaba.excel.annotation.format.NumberFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 @Data
+//导入不能有  导出依然可以
 @Accessors(chain = true)
 public class ProductExportVO {
     @ExcelProperty(index = 2, value = "产品名称")
-
     private String name;
-    @ExcelProperty(index = 0, value = "产品大类")
 
+    @ExcelProperty(index = 0, value = "产品大类")
     private String bigCategory;
 
     @ExcelProperty(index = 1, value = "产品小类")
@@ -28,13 +28,13 @@ public class ProductExportVO {
     private String taxCode;
 
     @ExcelProperty(index = 8, value = "商品税率")
-    private Double taxRate;
+    private String taxRate;
 
     @ExcelProperty(index = 6, value = "大类税率")
-    private Double bigCategoryTaxRate;
+    private String bigCategoryTaxRate;
 
     @ExcelProperty(index = 7, value = "小类税率")
-    private Double smallCategoryTaxRate;
+    private String smallCategoryTaxRate;
 
     @ExcelProperty(index = 9, value = "产品检测")
     private String needCheck;

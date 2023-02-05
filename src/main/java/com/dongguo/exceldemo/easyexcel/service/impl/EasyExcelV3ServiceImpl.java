@@ -1,18 +1,11 @@
 package com.dongguo.exceldemo.easyexcel.service.impl;
 
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.enums.CellExtraTypeEnum;
-import com.alibaba.excel.read.listener.PageReadListener;
-import com.alibaba.excel.read.metadata.ReadSheet;
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dongguo.exceldemo.easyexcel.common.*;
 import com.dongguo.exceldemo.easyexcel.convert.ProductSpuConvert;
-import com.dongguo.exceldemo.easyexcel.entity.DemoExtraData;
-import com.dongguo.exceldemo.easyexcel.entity.ProductExportVO;
-import com.dongguo.exceldemo.easyexcel.entity.ProductSpu;
-import com.dongguo.exceldemo.easyexcel.entity.ProductUploadVO;
+import com.dongguo.exceldemo.easyexcel.entity.*;
 import com.dongguo.exceldemo.easyexcel.mapper.EasyExcelMapper;
 import com.dongguo.exceldemo.easyexcel.service.EasyExcelService;
 import com.dongguo.exceldemo.easyexcel.service.EasyExcelV3Service;
@@ -22,10 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,21 +41,55 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
     private EasyExcelService easyExcelService;
 
     @Override
-    public void export(HttpServletResponse response) {
-        //查数据
-        List<ProductExportVO> exportVOList = getExportVOList();
-        //导出
-        String fileName = FILE_NAME;
-        EasyExcelUtils.export(response, exportVOList, fileName, ProductExportVO.class);
-    }
-
-    @Override
     public void exportSafe(HttpServletResponse response) {
         //查数据
         List<ProductExportVO> exportVOList = getExportVOList();
         //导出
         String fileName = FILE_NAME;
         EasyExcelUtils.exportSafe(response, exportVOList, fileName, ProductExportVO.class);
+    }
+
+    @Override
+    public void excludeOrIncludeWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> exportVOList = getExportVOList();
+        //导出
+        String fileName = FILE_NAME;
+        EasyExcelUtils.excludeOrIncludeWrite(response, exportVOList, fileName, ProductExportVO.class);
+    }
+
+    @Override
+    public void repeatedWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> exportVOList = getExportVOList();
+        //导出
+        String fileName = FILE_NAME;
+        EasyExcelUtils.repeatedWrite(response, exportVOList, fileName, ProductExportVO.class);
+    }
+
+    @Override
+    public void imageWrite(HttpServletResponse response) {
+        //查数据
+      List<ImageDemoData> list = new ArrayList<>();
+        try {
+            /**
+             * URL只要是个图片即可，不要求后缀等
+             */
+            URL url = new URL("https://www.baidu.com/img/flexible/logo/pc/result.png");
+            ImageDemoData imageDemoData = new ImageDemoData();
+            imageDemoData.setUrl(url);
+            list.add(imageDemoData);
+            URL url2 = new URL("https://img2.baidu.com/it/u=3334115308,1054927257&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500");
+            ImageDemoData imageDemoData2 = new ImageDemoData();
+            imageDemoData2.setUrl(url2);
+            list.add(imageDemoData2);
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        //导出
+        String fileName = "导出图片";
+        EasyExcelUtils.imageWrite(response, list, fileName, ImageDemoData.class);
     }
 
     @Override
@@ -110,6 +138,15 @@ public class EasyExcelV3ServiceImpl extends ServiceImpl<EasyExcelMapper, Product
             }
         }
 
+    }
+
+    @Override
+    public void simpleWrite(HttpServletResponse response) {
+        //查数据
+        List<ProductExportVO> exportVOList = getExportVOList();
+        //导出
+        String sheetName = FILE_NAME;
+        EasyExcelUtils.export(response, exportVOList, sheetName, ProductExportVO.class);
     }
 
     /**
