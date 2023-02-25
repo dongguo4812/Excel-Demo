@@ -8,4 +8,5 @@ package com.dongguo.exceldemo.easyexcel.service;
 public interface TestService {
     void getBatchId();
 
+    void saveBatch();
 }

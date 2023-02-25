@@ -1,6 +1,5 @@
 package com.dongguo.exceldemo.easyexcel.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -10,15 +9,17 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
 @Accessors(chain = true)
 @TableName("product_spu")
-public class ProductSpu{
-    private static final long serialVersionUID = 1L;
+public class ProductSpu implements Serializable {
 
-    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    private static final long serialVersionUID = 6424655311441011725L;
+    //ASSIGN_ID
+    @TableId(value = "id")
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 

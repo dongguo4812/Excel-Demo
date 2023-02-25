@@ -26,4 +26,9 @@ public class TestController {
         testService.getBatchId();
         log.info("test success");
     }
+    @PostMapping("/saveBatch")
+    public void saveBatch() {
+        testService.saveBatch();
+    }
+
 }

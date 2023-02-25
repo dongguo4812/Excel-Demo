@@ -16,6 +16,7 @@ public class ProductUploadVO {
     @ExcelIgnore
     @TableId("id")
     private Long id;
+
     @ExcelProperty(index = 0, value = "产品大类")
     private String bigCategory;
 
