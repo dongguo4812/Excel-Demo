@@ -96,14 +96,20 @@ public class MyExcelServiceImpl extends ServiceImpl<MyExcelMapper, ProductSpu> i
 //            });
 //            saveBatch(spuList);
 
-            List<ProductUploadMyExcelVO> voList = new ArrayList<>();
+            List<ProductSpu> spuList = new ArrayList<>();
             SaxExcelReader.of(ProductUploadMyExcelVO.class)
                     .sheet(0) // 0代表第一个，如果为0，可省略该操作，也可sheet("名称")读取，.csv文件无效
                     .rowFilter(row -> row.getRowNum() > 0) // 如无需过滤，可省略该操作，0代表第一行
                     .ignoreBlankRow() // 是否忽略空行，可选，默认不忽略
                     .stopReadingOnBlankRow() // 是否遇到空行则停止读取，可选，默认为否
-                    .readThen(file.getInputStream() ,vo -> {voList.add(vo);});// 可接收inputStream
-            List<ProductSpu> spuList = ProductSpuConvert.INSTANCE.voToPoList(voList);
+                    .readThen(file.getInputStream() , uploadVO -> {
+                        ProductSpu spu = ProductSpuConvert.INSTANCE.voToPo(uploadVO);
+                        spu.setNeedCheck(BooleanTypeEnum.parseType(uploadVO.getNeedCheckStr()));
+                        spu.setNeedLedger(BooleanTypeEnum.parseType(uploadVO.getNeedLedgerStr()));
+                        spu.setIsStandard(BooleanTypeEnum.parseType(uploadVO.getIsStandardStr()));
+                        spu.setCategory(uploadVO.getBigCategory() +"/"+ uploadVO.getSmallCategory());
+                        spuList.add(spu);
+                    });// 可接收inputStream
             saveBatch(spuList);
         } catch (IOException e) {
             e.printStackTrace();

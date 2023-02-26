@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author dongguo
@@ -187,18 +188,20 @@ public class EasyExcelUtils {
             outputStream = getOutputStream(response, fileName);
             // 方法1: 分页查询数据 根据页数分页写到同一个sheet
             // 这里 需要指定写用哪个class去写
-//            try (ExcelWriter excelWriter = EasyExcel.write(outputStream, clazz).build()) {
-//                // 这里注意 如果同一个sheet只要创建一次
-//                WriteSheet writeSheet = EasyExcel.writerSheet(fileName).build();
-//                // 去调用写入,这里我调用了五次，实际使用时根据数据库分页的总的页数来
-//
-//                //获得导出数据的条数，并根据总条数和一页显示条数得到页数
-//                for (int i = 0; i < 5; i++) {
-//                    // 分页去数据库查询数据 这里可以去数据库查询每一页的数据
-//                    List<ProductExportVO> data = (List<ProductExportVO>) list;
-//                    excelWriter.write(data, writeSheet);
-//                }
-//            }
+            try (ExcelWriter excelWriter = EasyExcel.write(outputStream, clazz).build()) {
+                // 这里注意 如果同一个sheet只要创建一次
+                WriteSheet writeSheet = EasyExcel.writerSheet(fileName).build();
+                // 去调用写入,这里我调用了五次，实际使用时根据数据库分页的总的页数来
+
+                //获得导出数据的条数，并根据总条数和一页显示条数得到页数
+                long pageSize = 3000L;
+                long totalPageNo = (list.size() / pageSize) + 1;
+                for (long pageNo = 1; pageNo <= totalPageNo; pageNo ++){
+                    long skipSize = pageSize * (pageNo - 1);
+                    List<ProductExportVO> data = (List<ProductExportVO>)list.stream().skip(skipSize).limit(pageSize).collect(Collectors.toList());
+                    excelWriter.write(data, writeSheet);
+                }
+            }
 
             // 方法2: 分页查询数据 根据页数分页写到不同的sheet 同一个对象
             // 这里 指定文件
@@ -215,17 +218,17 @@ public class EasyExcelUtils {
 
             // 方法3 分页查询数据 根据页数分页写到不同的sheet 不同的对象
             // 这里 指定文件
-            try (ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
-                // 去调用写入,这里我调用了五次，实际使用时根据数据库分页的总的页数来。这里最终会写到5个sheet里面
-                for (int i = 0; i < 5; i++) {
-                    // 每次都要创建writeSheet 这里注意必须指定sheetNo 而且sheetName必须不一样。这里注意DemoData.class 可以每次都变，我这里为了方便 所以用的同一个class
-                    // 实际上可以一直变
-                    WriteSheet writeSheet = EasyExcel.writerSheet(i, fileName + i).head(clazz).build();
-                    // 分页去数据库查询数据 这里可以去数据库查询每一页的数据
-                    List<ProductExportVO> data = (List<ProductExportVO>) list;
-                    excelWriter.write(data, writeSheet);
-                }
-            }
+//            try (ExcelWriter excelWriter = EasyExcel.write(outputStream).build()) {
+//                // 去调用写入,这里我调用了五次，实际使用时根据数据库分页的总的页数来。这里最终会写到5个sheet里面
+//                for (int i = 0; i < 5; i++) {
+//                    // 每次都要创建writeSheet 这里注意必须指定sheetNo 而且sheetName必须不一样。这里注意DemoData.class 可以每次都变，我这里为了方便 所以用的同一个class
+//                    // 实际上可以一直变
+//                    WriteSheet writeSheet = EasyExcel.writerSheet(i, fileName + i).head(clazz).build();
+//                    // 分页去数据库查询数据 这里可以去数据库查询每一页的数据
+//                    List<ProductExportVO> data = (List<ProductExportVO>) list;
+//                    excelWriter.write(data, writeSheet);
+//                }
+//            }
             outputStream.flush();
         } catch (Exception e) {
             e.printStackTrace();
