@@ -5,6 +5,7 @@ import com.dongguo.exceldemo.easyexcel.common.BooleanTypeEnum;
 import com.dongguo.exceldemo.easyexcel.entity.ProductSpu;
 import com.dongguo.exceldemo.easyexcel.service.EasyExcelService;
 import com.dongguo.exceldemo.myexcel.common.ProductSpuConvert;
+import com.dongguo.exceldemo.myexcel.entity.Image;
 import com.dongguo.exceldemo.myexcel.entity.ProductExportMyExcelVO;
 import com.dongguo.exceldemo.myexcel.entity.ProductUploadMyExcelVO;
 import com.dongguo.exceldemo.myexcel.mapper.MyExcelMapper;
@@ -146,6 +147,8 @@ public class MyExcelServiceImpl extends ServiceImpl<MyExcelMapper, ProductSpu> i
             e.printStackTrace();
         }
     }
+
+
 
     /**
      * 查数据库获得导出的List

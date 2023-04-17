@@ -1,5 +1,6 @@
 package com.dongguo.exceldemo.myexcel.controller;
 
+import com.dongguo.exceldemo.myexcel.service.MyExcelImageService;
 import com.dongguo.exceldemo.myexcel.service.MyExcelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,8 @@ public class MyExcelController {
 
     @Autowired
     private MyExcelService myExcelService;
+    @Autowired
+    private MyExcelImageService myExcelImageService;
     /**
      * 上传
      * @param file
@@ -35,6 +38,18 @@ public class MyExcelController {
         return"success";
     }
 
+    /**
+     * 上传带图片的excel
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    @PostMapping("/uploadImage")
+    @ResponseBody
+    public String uploadImage(MultipartFile file)throws IOException {
+        myExcelImageService.uploadImage(file);
+        return"success";
+    }
     /**
      * sax上传
      * @param file
